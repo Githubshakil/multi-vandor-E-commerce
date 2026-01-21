@@ -144,7 +144,7 @@ exports.login = async (req, res) => {
 
     await user.save();
 
-    res.cookie("refreshToken", refreshToken, {
+    res.cookies("refreshToken", refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "Strict",
@@ -166,6 +166,64 @@ exports.login = async (req, res) => {
     });
   } catch (error) {
     console.error("Login error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
+
+//Refresh Token Controller
+exports.refreshToken = async (req, res) => {
+  try {
+    const refreshToken = req.cookies.refreshToken;
+    if (!refreshToken) {
+      return res.status(401).json({
+        success: false,
+        message: "No refresh token provided",
+      });
+    }
+
+    //Find user with this refresh token
+    const user = await User.findOne({
+      refreshTokens: { $elemMatch: { token: refreshToken } },
+    });
+
+    if (!user) {
+      res.clearCookie("refreshToken");
+      return res.status(403).json({
+        message: "Invalid refresh token",
+        success: false,
+      });
+    }
+
+    //Verify refresh token
+    jwt.verify(
+      refreshToken,
+      process.env.JWT_REFRESH_SECRET,
+      async (err, decoded) => {
+        if (err) {
+          res.clearCookie("refreshToken");
+          return res.status(403).json({
+            message: "Invalid or expired refresh token",
+            success: false,
+          });
+        }
+
+        const newAccessToken = jwt.sign(
+          { id: user._id, role: user.role, email: user.email },
+          process.env.JWT_ACCESS_SECRET,
+          { expiresIn: process.env.ACCESS_TOKEN_EXPIRES_IN },
+        );
+
+        res.status(200).json({
+          success: true,
+          accessToken: newAccessToken,
+        });
+      },
+    );
+  } catch (error) {
+    console.error("Refresh token error:", error);
     res.status(500).json({
       success: false,
       message: "Internal server error",
