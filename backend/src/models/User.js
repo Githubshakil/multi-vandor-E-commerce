@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
 const bcrypt = require("bcryptjs");
+const e = require("express");
 
 const userSchema = new Schema(
   {
@@ -37,14 +38,17 @@ const userSchema = new Schema(
       type: Boolean,
       default: false,
     },
-    refreshToken: [
+    refreshTokens: [
       {
         token: String,
         createdAt: {
           type: Date,
           default: Date.now,
         },
+        expiresAt: {
+            type: Date,
       },
+    }
     ],
 
     createdAt: {
