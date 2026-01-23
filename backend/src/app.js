@@ -5,6 +5,8 @@ const cors = require("cors");
 const cookieParser = require("cookie-parser");
 
 const authRoutes = require("./routes/auth");
+const swaggerUi = require('swagger-ui-express')
+const swaggerSpecs = require('./config/swagger')
 
 const app = express();
 
@@ -16,7 +18,7 @@ app.use(
     credentials: true,
   }),
 );
-
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs))
 app.use(cookieParser());
 
 //Routes
