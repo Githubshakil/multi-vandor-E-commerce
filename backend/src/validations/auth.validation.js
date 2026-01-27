@@ -1,5 +1,5 @@
 const { z } = require("zod");
-const { route } = require("../routes/auth");
+
 
 // Registration schema
 
