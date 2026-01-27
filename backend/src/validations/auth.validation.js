@@ -33,9 +33,9 @@ const registrationSchema = z.object({
 
   phone: z
     .string()
-    .optional()
+    .trim()
     .regex(/^\+?[1-9]\d{1,14}$/, { message: "Invalid phone number format" })
-    .trim(),
+    .optional(),
 
   role: z.enum(["customer", "vendor"], { message: "Invalid role" })
         .optional()
